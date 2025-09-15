@@ -1,0 +1,282 @@
+openapi: 3.0.3
+info:
+  title: CSV Importer API
+  description: API contract for CSV data import from exchanges
+  version: 1.0.0
+  contact:
+    name: Crypto Tax Calculator
+    email: support@cryptotaxcalc.com
+
+paths:
+  /api/v1/csv/import:
+    post:
+      summary: Import transactions from CSV file
+      description: Upload and process CSV file from exchange
+      operationId: importCsvTransactions
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: CSV file to import
+                exchange:
+                  type: string
+                  enum: [revolut, coinbase, kucoin, kraken, binance]
+                  description: Source exchange
+                date_format:
+                  type: string
+                  default: "%Y-%m-%d %H:%M:%S"
+                  description: Date format in CSV
+                currency:
+                  type: string
+                  default: "EUR"
+                  description: Base currency for calculations
+              required:
+                - file
+                - exchange
+      responses:
+        '200':
+          description: CSV imported successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  transactions_imported:
+                    type: integer
+                  transactions_skipped:
+                    type: integer
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                  warnings:
+                    type: array
+                    items:
+                      type: string
+                  file_hash:
+                    type: string
+                    description: SHA-256 hash of imported file
+        '400':
+          description: Bad request - invalid file or parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Unprocessable entity - CSV format issues
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/csv/validate:
+    post:
+      summary: Validate CSV file before import
+      description: Check CSV file format and data without importing
+      operationId: validateCsvFile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: CSV file to validate
+                exchange:
+                  type: string
+                  enum: [revolut, coinbase, kucoin, kraken, binance]
+                  description: Source exchange
+              required:
+                - file
+                - exchange
+      responses:
+        '200':
+          description: CSV validation completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  row_count:
+                    type: integer
+                  required_columns:
+                    type: array
+                    items:
+                      type: string
+                  missing_columns:
+                    type: array
+                    items:
+                      type: string
+                  sample_data:
+                    type: array
+                    items:
+                      type: object
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                  warnings:
+                    type: array
+                    items:
+                      type: string
+        '400':
+          description: Bad request - invalid file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/csv/templates:
+    get:
+      summary: Get CSV template for exchange
+      description: Download CSV template for specific exchange
+      operationId: getCsvTemplate
+      parameters:
+        - name: exchange
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [revolut, coinbase, kucoin, kraken, binance]
+          description: Exchange name
+      responses:
+        '200':
+          description: CSV template downloaded
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Bad request - invalid exchange
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/csv/imports:
+    get:
+      summary: Get import history
+      description: Retrieve history of CSV imports
+      operationId: getImportHistory
+      parameters:
+        - name: exchange
+          in: query
+          schema:
+            type: string
+            enum: [revolut, coinbase, kucoin, kraken, binance]
+          description: Filter by exchange
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+          description: Number of imports to return
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Number of imports to skip
+      responses:
+        '200':
+          description: Import history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  imports:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ImportRecord'
+                  total_count:
+                    type: integer
+                  has_more:
+                    type: boolean
+        '400':
+          description: Bad request - invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    ImportRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Import record identifier
+        exchange:
+          type: string
+          description: Source exchange
+        file_name:
+          type: string
+          description: Original file name
+        file_hash:
+          type: string
+          description: SHA-256 hash of file
+        transactions_imported:
+          type: integer
+          description: Number of transactions imported
+        transactions_skipped:
+          type: integer
+          description: Number of transactions skipped
+        import_date:
+          type: string
+          format: date-time
+          description: Import timestamp
+        status:
+          type: string
+          enum: [success, partial, failed]
+          description: Import status
+        errors:
+          type: array
+          items:
+            type: string
+          description: Import errors
+        warnings:
+          type: array
+          items:
+            type: string
+          description: Import warnings
+      required:
+        - id
+        - exchange
+        - file_name
+        - file_hash
+        - transactions_imported
+        - import_date
+        - status
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        code:
+          type: string
+          description: Error code
+        details:
+          type: object
+          description: Additional error details
+      required:
+        - error
+        - code

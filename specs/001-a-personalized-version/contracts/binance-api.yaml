@@ -1,0 +1,260 @@
+openapi: 3.0.3
+info:
+  title: Binance API Integration
+  description: API contract for Binance data integration
+  version: 1.0.0
+  contact:
+    name: Crypto Tax Calculator
+    email: support@cryptotaxcalc.com
+
+paths:
+  /api/v1/binance/sync:
+    post:
+      summary: Sync transactions from Binance API
+      description: Fetch and store transactions from Binance API with pagination
+      operationId: syncBinanceTransactions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                start_date:
+                  type: string
+                  format: date
+                  description: Start date for sync (YYYY-MM-DD)
+                end_date:
+                  type: string
+                  format: date
+                  description: End date for sync (YYYY-MM-DD)
+                exchange_types:
+                  type: array
+                  items:
+                    type: string
+                    enum: [spot, futures, margin, fiat]
+                  description: Types of transactions to sync
+                force_refresh:
+                  type: boolean
+                  default: false
+                  description: Force refresh even if data exists
+              required:
+                - start_date
+                - end_date
+      responses:
+        '200':
+          description: Sync completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  transactions_synced:
+                    type: integer
+                  start_date:
+                    type: string
+                    format: date
+                  end_date:
+                    type: string
+                    format: date
+                  snapshots_created:
+                    type: integer
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        '400':
+          description: Bad request - invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/binance/status:
+    get:
+      summary: Get Binance sync status
+      description: Check the status of Binance data sync
+      operationId: getBinanceStatus
+      responses:
+        '200':
+          description: Status retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  last_sync:
+                    type: string
+                    format: date-time
+                  total_transactions:
+                    type: integer
+                  sync_in_progress:
+                    type: boolean
+                  rate_limit_remaining:
+                    type: integer
+                  next_sync_available:
+                    type: string
+                    format: date-time
+
+  /api/v1/binance/transactions:
+    get:
+      summary: Get Binance transactions
+      description: Retrieve stored Binance transactions with filtering
+      operationId: getBinanceTransactions
+      parameters:
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter transactions from this date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter transactions to this date
+        - name: asset
+          in: query
+          schema:
+            type: string
+          description: Filter by asset symbol
+        - name: action
+          in: query
+          schema:
+            type: string
+            enum: [buy, sell, swap, transfer, staking, fee]
+          description: Filter by transaction action
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+            maximum: 1000
+          description: Number of transactions to return
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Number of transactions to skip
+      responses:
+        '200':
+          description: Transactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transactions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+                  total_count:
+                    type: integer
+                  has_more:
+                    type: boolean
+        '400':
+          description: Bad request - invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique transaction identifier
+        date:
+          type: string
+          format: date-time
+          description: Transaction timestamp (UTC)
+        exchange:
+          type: string
+          description: Source exchange
+        asset:
+          type: string
+          description: Cryptocurrency symbol
+        action:
+          type: string
+          enum: [buy, sell, swap, transfer, staking, fee]
+          description: Transaction action type
+        amount:
+          type: number
+          format: decimal
+          description: Quantity of asset
+        price_eur:
+          type: number
+          format: decimal
+          description: Price in EUR
+        fee:
+          type: number
+          format: decimal
+          description: Transaction fee in EUR
+        fee_asset:
+          type: string
+          description: Asset used for fee payment
+        tx_id:
+          type: string
+          description: Exchange transaction ID
+        source:
+          type: string
+          enum: [api, csv, manual]
+          description: Data source
+        is_taxable:
+          type: boolean
+          description: Whether transaction affects CGT
+        tax_year:
+          type: integer
+          description: Irish tax year
+        cost_basis:
+          type: number
+          format: decimal
+          description: FIFO cost basis for disposal
+        realized_gain_loss:
+          type: number
+          format: decimal
+          description: Calculated gain/loss
+      required:
+        - id
+        - date
+        - exchange
+        - asset
+        - action
+        - amount
+        - price_eur
+        - source
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        code:
+          type: string
+          description: Error code
+        details:
+          type: object
+          description: Additional error details
+      required:
+        - error
+        - code

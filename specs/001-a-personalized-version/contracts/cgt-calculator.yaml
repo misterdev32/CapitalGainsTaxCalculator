@@ -1,0 +1,477 @@
+openapi: 3.0.3
+info:
+  title: CGT Calculator API
+  description: API contract for Irish Capital Gains Tax calculations
+  version: 1.0.0
+  contact:
+    name: Crypto Tax Calculator
+    email: support@cryptotaxcalc.com
+
+paths:
+  /api/v1/cgt/calculate:
+    post:
+      summary: Calculate CGT for tax year
+      description: Calculate capital gains tax for specific Irish tax year
+      operationId: calculateCGT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tax_year:
+                  type: integer
+                  minimum: 2010
+                  maximum: 2030
+                  description: Irish tax year (e.g., 2024)
+                include_unrealized:
+                  type: boolean
+                  default: false
+                  description: Include unrealized gains/losses
+                force_recalculate:
+                  type: boolean
+                  default: false
+                  description: Force recalculation even if report exists
+              required:
+                - tax_year
+      responses:
+        '200':
+          description: CGT calculation completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CGTReport'
+        '400':
+          description: Bad request - invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Unprocessable entity - calculation errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/cgt/reports:
+    get:
+      summary: Get CGT reports
+      description: Retrieve generated CGT reports
+      operationId: getCGTReports
+      parameters:
+        - name: tax_year
+          in: query
+          schema:
+            type: integer
+            minimum: 2010
+            maximum: 2030
+          description: Filter by tax year
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 50
+          description: Number of reports to return
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Number of reports to skip
+      responses:
+        '200':
+          description: Reports retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reports:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CGTReport'
+                  total_count:
+                    type: integer
+                  has_more:
+                    type: boolean
+        '400':
+          description: Bad request - invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/cgt/reports/{report_id}:
+    get:
+      summary: Get specific CGT report
+      description: Retrieve detailed CGT report by ID
+      operationId: getCGTReport
+      parameters:
+        - name: report_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Report identifier
+      responses:
+        '200':
+          description: Report retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CGTReport'
+        '404':
+          description: Report not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/cgt/reports/{report_id}/export:
+    get:
+      summary: Export CGT report
+      description: Export CGT report in various formats
+      operationId: exportCGTReport
+      parameters:
+        - name: report_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Report identifier
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [csv, excel, pdf, json]
+            default: csv
+          description: Export format
+        - name: include_transactions
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Include detailed transaction breakdown
+      responses:
+        '200':
+          description: Report exported successfully
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Report not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/cgt/transactions/{tax_year}:
+    get:
+      summary: Get transactions for tax year
+      description: Retrieve all transactions for specific tax year with CGT calculations
+      operationId: getTaxYearTransactions
+      parameters:
+        - name: tax_year
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 2010
+            maximum: 2030
+          description: Irish tax year
+        - name: asset
+          in: query
+          schema:
+            type: string
+          description: Filter by asset symbol
+        - name: action
+          in: query
+          schema:
+            type: string
+            enum: [buy, sell, swap, transfer, staking, fee]
+          description: Filter by transaction action
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+            maximum: 1000
+          description: Number of transactions to return
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Number of transactions to skip
+      responses:
+        '200':
+          description: Transactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transactions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TransactionWithCGT'
+                  total_count:
+                    type: integer
+                  has_more:
+                    type: boolean
+                  tax_year_summary:
+                    $ref: '#/components/schemas/TaxYearSummary'
+        '400':
+          description: Bad request - invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    CGTReport:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Report identifier
+        tax_year:
+          type: integer
+          description: Irish tax year
+        total_gains:
+          type: number
+          format: decimal
+          description: Total realized gains
+        total_losses:
+          type: number
+          format: decimal
+          description: Total realized losses
+        net_gains:
+          type: number
+          format: decimal
+          description: Net gains (gains - losses)
+        exemption_applied:
+          type: number
+          format: decimal
+          description: €1,270 exemption applied
+        taxable_gains:
+          type: number
+          format: decimal
+          description: Gains subject to tax
+        tax_due:
+          type: number
+          format: decimal
+          description: Tax amount (33% of taxable gains)
+        created_at:
+          type: string
+          format: date-time
+          description: Report generation timestamp
+        transactions_count:
+          type: integer
+          description: Number of transactions included
+        exchanges:
+          type: array
+          items:
+            type: string
+          description: Exchanges included in report
+        asset_breakdown:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssetBreakdown'
+          description: Gains/losses by asset
+        exchange_breakdown:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExchangeBreakdown'
+          description: Gains/losses by exchange
+      required:
+        - id
+        - tax_year
+        - total_gains
+        - total_losses
+        - net_gains
+        - exemption_applied
+        - taxable_gains
+        - tax_due
+        - created_at
+        - transactions_count
+
+    TransactionWithCGT:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Transaction identifier
+        date:
+          type: string
+          format: date-time
+          description: Transaction timestamp
+        exchange:
+          type: string
+          description: Source exchange
+        asset:
+          type: string
+          description: Asset symbol
+        action:
+          type: string
+          enum: [buy, sell, swap, transfer, staking, fee]
+          description: Transaction action
+        amount:
+          type: number
+          format: decimal
+          description: Quantity of asset
+        price_eur:
+          type: number
+          format: decimal
+          description: Price in EUR
+        cost_basis:
+          type: number
+          format: decimal
+          description: FIFO cost basis
+        realized_gain_loss:
+          type: number
+          format: decimal
+          description: Calculated gain/loss
+        is_taxable:
+          type: boolean
+          description: Whether transaction affects CGT
+        tax_year:
+          type: integer
+          description: Irish tax year
+      required:
+        - id
+        - date
+        - exchange
+        - asset
+        - action
+        - amount
+        - price_eur
+        - realized_gain_loss
+        - is_taxable
+        - tax_year
+
+    TaxYearSummary:
+      type: object
+      properties:
+        tax_year:
+          type: integer
+          description: Irish tax year
+        total_gains:
+          type: number
+          format: decimal
+          description: Total gains from all sources
+        total_losses:
+          type: number
+          format: decimal
+          description: Total losses from all sources
+        net_position:
+          type: number
+          format: decimal
+          description: Net gains/losses
+        exemption_available:
+          type: number
+          format: decimal
+          description: Remaining exemption
+        tax_due:
+          type: number
+          format: decimal
+          description: Tax amount due
+        transactions_count:
+          type: integer
+          description: Number of transactions
+        exchanges:
+          type: array
+          items:
+            type: string
+          description: Exchanges included
+        last_updated:
+          type: string
+          format: date-time
+          description: Last calculation timestamp
+      required:
+        - tax_year
+        - total_gains
+        - total_losses
+        - net_position
+        - exemption_available
+        - tax_due
+        - transactions_count
+        - last_updated
+
+    AssetBreakdown:
+      type: object
+      properties:
+        asset:
+          type: string
+          description: Asset symbol
+        total_gains:
+          type: number
+          format: decimal
+          description: Total gains for asset
+        total_losses:
+          type: number
+          format: decimal
+          description: Total losses for asset
+        net_gains:
+          type: number
+          format: decimal
+          description: Net gains for asset
+        transactions_count:
+          type: integer
+          description: Number of transactions
+      required:
+        - asset
+        - total_gains
+        - total_losses
+        - net_gains
+        - transactions_count
+
+    ExchangeBreakdown:
+      type: object
+      properties:
+        exchange:
+          type: string
+          description: Exchange name
+        total_gains:
+          type: number
+          format: decimal
+          description: Total gains from exchange
+        total_losses:
+          type: number
+          format: decimal
+          description: Total losses from exchange
+        net_gains:
+          type: number
+          format: decimal
+          description: Net gains from exchange
+        transactions_count:
+          type: integer
+          description: Number of transactions
+      required:
+        - exchange
+        - total_gains
+        - total_losses
+        - net_gains
+        - transactions_count
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        code:
+          type: string
+          description: Error code
+        details:
+          type: object
+          description: Additional error details
+      required:
+        - error
+        - code
