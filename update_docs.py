@@ -5,6 +5,7 @@ This script should be run after each task is completed to update the wiki docume
 """
 
 import json
+import re
 import subprocess
 import sys
 from datetime import datetime
