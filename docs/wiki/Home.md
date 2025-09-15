@@ -46,9 +46,9 @@ This project provides a comprehensive solution for crypto tax compliance in Irel
 
 - **Phase**: Development
 - **Total Tasks**: 65
-- **Completed**: 6
+- **Completed**: 12
 - **In Progress**: 0
-- **Remaining**: 59
+- **Remaining**: 53
 
 ## 🏗️ Architecture
 

@@ -10,13 +10,13 @@ This page tracks the progress of all development tasks organized by phase.
 - [x] T005: Create environment configuration and secrets management
 - [x] T006: Set up logging configuration with structured JSON logging
 
-## Phase 3.2: Tests First - TDD (15 tasks)
-- [ ] T007: Contract test Binance API sync
-- [ ] T008: Contract test Binance API status
-- [ ] T009: Contract test Binance API transactions
-- [ ] T010: Contract test CSV import
-- [ ] T011: Contract test CSV validation
-- [ ] T012: Contract test CSV templates
+## Phase 3.2: Tests First - TDD (15 tasks) 🔄 IN PROGRESS
+- [x] T007: Contract test Binance API sync
+- [x] T008: Contract test Binance API status
+- [x] T009: Contract test Binance API transactions
+- [x] T010: Contract test CSV import
+- [x] T011: Contract test CSV validation
+- [x] T012: Contract test CSV templates
 - [ ] T013: Contract test CGT calculation
 - [ ] T014: Contract test CGT reports
 - [ ] T015: Contract test CGT export
@@ -82,11 +82,11 @@ This page tracks the progress of all development tasks organized by phase.
 | Phase | Total | Completed | In Progress | Remaining |
 |-------|-------|-----------|-------------|-----------|
 | Setup | 6 | 6 | 0 | 0 |
-| Tests | 15 | 0 | 0 | 15 |
+| Tests | 15 | 6 | 0 | 9 |
 | Core | 20 | 0 | 0 | 20 |
 | Integration | 12 | 0 | 0 | 12 |
 | Polish | 12 | 0 | 0 | 12 |
-| **Total** | **65** | **6** | **0** | **59** |
+| **Total** | **65** | **12** | **0** | **53** |
 
 
 
