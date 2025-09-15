@@ -80,8 +80,8 @@ class DatabaseManager:
         if not self.engine:
             raise RuntimeError("Database engine not initialized")
         
-        # Create tables using Base metadata
-        # Note: Models will be implemented in Phase 3.3
+        # Import models here to avoid circular imports
+        from crypto_tax_calculator.models import Base
         Base.metadata.create_all(bind=self.engine)
     
     def drop_tables(self) -> None:
@@ -89,7 +89,8 @@ class DatabaseManager:
         if not self.engine:
             raise RuntimeError("Database engine not initialized")
         
-        # Note: Models will be implemented in Phase 3.3
+        # Import models here to avoid circular imports
+        from crypto_tax_calculator.models import Base
         Base.metadata.drop_all(bind=self.engine)
     
     def close(self) -> None:
