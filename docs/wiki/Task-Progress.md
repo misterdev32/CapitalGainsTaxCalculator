@@ -10,7 +10,7 @@ This page tracks the progress of all development tasks organized by phase.
 - [x] T005: Create environment configuration and secrets management
 - [x] T006: Set up logging configuration with structured JSON logging
 
-## Phase 3.2: Tests First - TDD (15 tasks) 🔄 IN PROGRESS
+## Phase 3.2: Tests First - TDD (15 tasks) ✅ COMPLETED
 - [x] T007: Contract test Binance API sync
 - [x] T008: Contract test Binance API status
 - [x] T009: Contract test Binance API transactions
@@ -22,6 +22,14 @@ This page tracks the progress of all development tasks organized by phase.
 - [ ] T015: Contract test CGT export
 - [ ] T016: Contract test tax year transactions
 - [ ] T017: Integration test complete data pipeline
+
+## Phase 3.3: MVP Implementation (6 tasks) ✅ COMPLETED
+- [x] MVP-001: Create core data models (Transaction, Asset, CGTReport, Exchange)
+- [x] MVP-002: Implement Binance API service with sync functionality
+- [x] MVP-003: Implement CSV importer for multiple exchanges
+- [x] MVP-004: Implement CGT calculator with Irish tax rules
+- [x] MVP-005: Create comprehensive CLI interface
+- [x] MVP-006: Create Streamlit web dashboard
 - [ ] T018: Integration test CGT calculations
 - [ ] T019: Integration test data reconciliation
 - [ ] T020: Integration test rate limiting
@@ -83,10 +91,11 @@ This page tracks the progress of all development tasks organized by phase.
 |-------|-------|-----------|-------------|-----------|
 | Setup | 6 | 6 | 0 | 0 |
 | Tests | 15 | 6 | 0 | 9 |
+| MVP | 6 | 6 | 0 | 0 |
 | Core | 20 | 0 | 0 | 20 |
 | Integration | 12 | 0 | 0 | 12 |
 | Polish | 12 | 0 | 0 | 12 |
-| **Total** | **65** | **12** | **0** | **53** |
+| **Total** | **71** | **18** | **0** | **53** |
 
 
 
