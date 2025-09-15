@@ -1,0 +1,49 @@
+binance:
+  api_key: ''
+  api_secret: ''
+  base_url: https://api.binance.com
+  rate_limit: 1200
+  timeout: 30
+cgt:
+  annual_exemption: 1270
+  base_currency: EUR
+  tax_rate: 0.33
+  tax_year_start_day: 6
+  tax_year_start_month: 4
+data:
+  backup_retention_days: 365
+  csv_exports_dir: data/csv_exports
+  reports_dir: data/reports
+  snapshots_dir: data/snapshots
+database:
+  database: crypto_tax_calc
+  echo: false
+  host: localhost
+  password: ''
+  path: data/crypto_tax_calc.db
+  port: 5432
+  type: sqlite
+  username: postgres
+exchanges:
+  coinbase:
+    enabled: true
+    type: csv
+  kraken:
+    enabled: true
+    type: csv
+  kucoin:
+    enabled: true
+    type: csv
+  revolut:
+    enabled: true
+    type: csv
+logging:
+  backup_count: 5
+  file: logs/crypto_tax_calc.log
+  format: json
+  level: INFO
+  max_size: 10MB
+web:
+  debug: false
+  host: localhost
+  port: 8501

@@ -1,0 +1,41 @@
+# Core dependencies
+pandas>=2.0.0
+sqlalchemy>=2.0.0
+requests>=2.31.0
+python-binance>=1.0.19
+
+# Web framework
+streamlit>=1.28.0
+plotly>=5.17.0
+
+# Database
+psycopg2-binary>=2.9.7  # PostgreSQL adapter
+
+# Data processing
+openpyxl>=3.1.0  # Excel file support
+python-dateutil>=2.8.2
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+requests-mock>=1.11.0
+
+# Code quality
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.5.0
+isort>=5.12.0
+
+# Security
+safety>=2.3.0
+bandit>=1.7.0
+
+# Development
+pre-commit>=3.3.0
+jupyter>=1.0.0
+ipython>=8.14.0
+
+# Documentation
+mkdocs>=1.5.0
+mkdocs-material>=9.2.0

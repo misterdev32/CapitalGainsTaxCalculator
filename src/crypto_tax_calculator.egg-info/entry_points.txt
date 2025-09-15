@@ -1,0 +1,3 @@
+[console_scripts]
+crypto-tax-calc = crypto_tax_calculator.cli.main:main
+crypto-tax-web = crypto_tax_web.cli.main:main
